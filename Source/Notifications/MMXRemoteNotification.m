@@ -41,18 +41,21 @@ NSString *const kMMXRemoteNotificationFrameworkKey = @"_mmx";
         NSString *callbackURLString = mmxDictionary[kMMXRemoteNotificationCallbackURLKey];
         NSURL *callbackURL = [NSURL URLWithString:callbackURLString];
         if (callbackURL) {
-            NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:callbackURL];
-            request.HTTPMethod = @"POST";
-            [NSURLConnection sendAsynchronousRequest:request
-                                               queue:[NSOperationQueue mainQueue]
-                                   completionHandler:
-                                           ^(NSURLResponse *response, NSData *data, NSError *error)
-                                           {
-                                               if (completion) {
-                                                   completion(error == nil);
-                                               }
-                                           }];
-        } else {
+			
+			NSURLSessionConfiguration * config = [NSURLSessionConfiguration backgroundSessionConfiguration:@"com.magnetmessage.backgroundrequest.acknowledgeRemoteNotification"];
+			
+			NSURLSession * session = [NSURLSession sessionWithConfiguration:config];
+			
+			NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:callbackURL];
+			
+			request.HTTPMethod = @"POST";
+
+			[[session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+				if (completion) {
+					completion(error == nil);
+				}
+			}] resume];
+		} else {
             if (completion) {
                 completion(NO);
             }
@@ -64,6 +67,5 @@ NSString *const kMMXRemoteNotificationFrameworkKey = @"_mmx";
         }
     }
 }
-
 
 @end
